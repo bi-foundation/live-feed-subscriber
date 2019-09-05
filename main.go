@@ -8,13 +8,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"syscall"
 	"time"
 )
 
 var (
 	SubscriptionApi = "http://localhost:8700"
 	ListenerAddr    = ":8787"
-	OuptutDirectory = "events"
+	OutputDirectory = "events"
 )
 
 type Hash struct {
@@ -29,7 +30,7 @@ type Event struct {
 
 func main() {
 	// create output directory to store file
-	os.MkdirAll(OuptutDirectory, os.ModePerm)
+	createOutputFolder(OutputDirectory)
 
 	// setup listener server
 	setupListener()
@@ -60,12 +61,12 @@ func subscribe() string {
 		Filters: map[string]struct {
 			Filtering string `json:"filtering"`
 		}{
-			"ANCHOR_EVENT": {Filtering: ""},
-			"COMMIT_CHAIN": {Filtering: ""},
-			"COMMIT_ENTRY": {Filtering: ""},
-			"REVEAL_ENTRY": {Filtering: ""},
-			"NODE_MESSAGE": {Filtering: ""},
-			"PROCESS_MESSAGE": {Filtering: ""},
+			"BLOCK_COMMIT":               {Filtering: ""},
+			"CHAIN_REGISTRATION":         {Filtering: ""},
+			"ENTRY_REGISTRATION":         {Filtering: ""},
+			"ENTRY_CONTENT_REGISTRATION": {Filtering: ""},
+			"NODE_MESSAGE":               {Filtering: ""},
+			"PROCESS_MESSAGE":            {Filtering: ""},
 		},
 	}
 
@@ -157,10 +158,14 @@ func handleEvent(body []byte) {
 }
 
 func writeFile(eventType string, event []byte) {
+	oldMask := syscall.Umask(0)
+	defer syscall.Umask(oldMask)
+
 	// write the whole body at once
 	log.Printf("writing event to file: %s", eventType)
 	data := formatJson(event)
-	err := ioutil.WriteFile(fmt.Sprintf("%s/%s.json", OuptutDirectory, eventType), data, os.ModeType)
+
+	err := ioutil.WriteFile(fmt.Sprintf("%s/%s.json", OutputDirectory, eventType), data, os.ModePerm)
 	if err != nil {
 		log.Printf("failed to write file: %v", err)
 	}
@@ -173,4 +178,13 @@ func formatJson(src []byte) []byte {
 		return src
 	}
 	return out.Bytes()
+}
+
+func createOutputFolder(folderPath string) {
+	oldMask := syscall.Umask(0)
+	defer syscall.Umask(oldMask)
+
+	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+		log.Printf("failed to create event directory '%s': %v", folderPath, err)
+	}
 }

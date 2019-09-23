@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	SubscriptionApi = "http://localhost:8700"
+	SubscriptionApi = "http://localhost:8700/live/feed/v0.1"
 	ListenerAddr    = ":8787"
 	OutputDirectory = "events"
 )

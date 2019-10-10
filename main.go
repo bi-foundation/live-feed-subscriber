@@ -61,12 +61,12 @@ func subscribe() string {
 		Filters: map[string]struct {
 			Filtering string `json:"filtering"`
 		}{
-			"BLOCK_COMMIT":               {Filtering: ""},
-			"CHAIN_REGISTRATION":         {Filtering: ""},
-			"ENTRY_REGISTRATION":         {Filtering: ""},
-			"ENTRY_CONTENT_REGISTRATION": {Filtering: ""},
-			"NODE_MESSAGE":               {Filtering: ""},
-			"PROCESS_MESSAGE":            {Filtering: ""},
+			"DIRECTORY_BLOCK_COMMIT": {Filtering: ""},
+			"CHAIN_COMMIT":           {Filtering: ""},
+			"ENTRY_COMMIT":           {Filtering: ""},
+			"ENTRY_REVEAL":           {Filtering: ""},
+			"NODE_MESSAGE":           {Filtering: ""},
+			"PROCESS_MESSAGE":        {Filtering: ""},
 		},
 	}
 
@@ -152,7 +152,7 @@ func handleEvent(body []byte) {
 	}
 
 	// write the event to disk
-	for eventType, _ := range event.Value {
+	for eventType := range event.Value {
 		writeFile(eventType, body)
 	}
 }

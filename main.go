@@ -15,10 +15,16 @@ import (
 )
 
 var (
+	// Address of the live-feed api.
 	SubscriptionApi = "http://127.0.0.1:8700/live/feed/v0.1"
-	ListenerAddr    = ":8787"
+	// port where this program should run
+	ListenerAddr = ":8787"
+	// This the address of this program. Note: running the live-feed api in docker the 127.0.0.1 doesn't work.
+	CallbackAddress = fmt.Sprintf("http://127.0.0.1%s/callback", ListenerAddr)
+	// folder to store the last received event
 	OutputDirectory = "events"
-	ID              = -1
+	// set the ID if you want to reuse
+	ID = -1
 )
 
 type Event struct {
@@ -56,7 +62,7 @@ func main() {
 func subscribe() {
 	subscription := &Subscription{
 		ID:           strconv.Itoa(ID),
-		CallbackUrl:  fmt.Sprintf("http://172.16.255.32%s/callback", ListenerAddr),
+		CallbackUrl:  CallbackAddress,
 		CallbackType: "HTTP",
 		Filters: map[string]struct {
 			Filtering string `json:"filtering"`
@@ -67,7 +73,7 @@ func subscribe() {
 			"ENTRY_REVEAL":           {Filtering: ""},
 			"STATE_CHANGE":           {Filtering: ""},
 			"NODE_MESSAGE":           {Filtering: ""},
-			"PROCESS_MESSAGE":        {Filtering: ""},
+			"PROCESS_LIST_EVENT":     {Filtering: ""},
 		},
 	}
 
